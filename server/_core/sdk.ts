@@ -90,6 +90,10 @@ class SDKServer {
     this.oauthService = new OAuthService(this.client);
   }
 
+  private hasOAuthServer(): boolean {
+    return typeof ENV.oAuthServerUrl === "string" && ENV.oAuthServerUrl.trim().length > 0;
+  }
+
   private deriveLoginMethod(
     platforms: unknown,
     fallback: string | null | undefined
@@ -234,6 +238,10 @@ class SDKServer {
   async getUserInfoWithJwt(
     jwtToken: string
   ): Promise<GetUserInfoWithJwtResponse> {
+    if (!this.hasOAuthServer()) {
+      throw ForbiddenError("OAuth server is not configured");
+    }
+
     const payload: GetUserInfoWithJwtRequest = {
       jwtToken,
       projectId: ENV.appId,
@@ -289,8 +297,14 @@ class SDKServer {
     const signedInAt = new Date();
     let user = await db.getUserByOpenId(sessionUserId);
 
-    // If user not in DB, sync from OAuth server automatically
+    // If user not in DB, sync from OAuth server automatically when a real
+    // OAuth server is configured. For the direct admin login flow, the user
+    // is created during login and only the local session JWT is required.
     if (!user) {
+      if (!this.hasOAuthServer()) {
+        throw ForbiddenError("User session is not linked to a local account");
+      }
+
       try {
         const userInfo = await this.getUserInfoWithJwt(sessionToken ?? "");
         await db.upsertUser({

@@ -48,6 +48,17 @@ describe("auth.superAdminLogin", () => {
     vi.unstubAllEnvs();
   });
 
+  it("does not try to contact the external OAuth service when OAUTH_SERVER_URL is unset", async () => {
+    vi.stubEnv("OAUTH_SERVER_URL", "");
+    vi.stubEnv("JWT_SECRET", "test-secret-for-auth");
+
+    const { sdk } = await import("./_core/sdk");
+
+    await expect(sdk.getUserInfoWithJwt("sample-token")).rejects.toMatchObject({ message: "OAuth server is not configured" });
+
+    vi.unstubAllEnvs();
+  });
+
   it("accepts the configured credential through the API and sets a protected admin session cookie", async () => {
     setDbForTesting(createTestDb() as never);
     const { ctx, cookies } = createContext();
