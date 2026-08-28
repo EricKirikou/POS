@@ -8,6 +8,7 @@ import App from "./App";
 import "./index.css";
 
 const queryClient = new QueryClient();
+const API_BASE_URL = (import.meta.env.VITE_API_URL ?? "https://pos-vz7p.onrender.com").replace(/\/$/, "");
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!(error instanceof TRPCClientError)) return;
@@ -41,7 +42,7 @@ queryClient.getMutationCache().subscribe(event => {
 const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
-      url: "/api/trpc",
+      url: `${API_BASE_URL}/api/trpc`,
       transformer: superjson,
       headers() {
         // Preview auto-login fallback: when the browser blocks iframe cookies
