@@ -84,7 +84,7 @@ export const appRouter = router({
       await upsertUser({ openId: SUPER_ADMIN_OPEN_ID, name: "Super Admin", email: input.email.trim().toLowerCase(), loginMethod: "credential", role: "admin", lastSignedIn: new Date() });
       const token = await sdk.createSessionToken(SUPER_ADMIN_OPEN_ID, { name: "Super Admin", expiresInMs: SUPER_ADMIN_SESSION_MS });
       ctx.res.cookie(COOKIE_NAME, token, { ...getSessionCookieOptions(ctx.req), maxAge: SUPER_ADMIN_SESSION_MS });
-      return { success: true, role: "admin" as const, expiresInMs: SUPER_ADMIN_SESSION_MS };
+      return { success: true, role: "admin" as const, expiresInMs: SUPER_ADMIN_SESSION_MS, sessionToken: token };
     }),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);

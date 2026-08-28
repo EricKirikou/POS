@@ -52,9 +52,12 @@ const trpcClient = trpc.createClient({
         try {
           const raw = sessionStorage.getItem("manus-cookie");
           if (raw) {
+            const normalized = raw.startsWith(`${COOKIE_NAME}=`)
+              ? raw
+              : `${COOKIE_NAME}=${raw}`;
             const prefix = `${COOKIE_NAME}=`;
-            const pair = raw.split(";").find(s => s.trim().startsWith(prefix));
-            const token = pair?.trim().slice(prefix.length);
+            const pair = normalized.split(";").find(s => s.trim().startsWith(prefix));
+            const token = pair?.trim().slice(prefix.length) ?? raw.trim();
             if (token) {
               return { Authorization: `Bearer ${token}` };
             }

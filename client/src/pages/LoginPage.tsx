@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { AlertCircle, ArrowRight, CheckCircle2, Eye, EyeOff, Loader2, LockKeyhole, ShieldCheck, Store, UsersRound } from "lucide-react";
+import { COOKIE_NAME } from "@shared/const";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,16 @@ export default function LoginPage() {
   const [error, setError] = useState("");
 
   const login = trpc.auth.superAdminLogin.useMutation({
-    onSuccess: () => navigate("/dashboard", { replace: true }),
+    onSuccess: (result) => {
+      if (result.sessionToken) {
+        try {
+          sessionStorage.setItem("manus-cookie", `${COOKIE_NAME}=${result.sessionToken}`);
+        } catch {
+          // sessionStorage may be unavailable in restricted browser contexts.
+        }
+      }
+      navigate("/dashboard", { replace: true });
+    },
     onError: (cause) => setError(cause.message === "Invalid email or password." ? "The email or password is incorrect." : cause.message),
   });
 

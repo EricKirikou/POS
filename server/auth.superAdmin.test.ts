@@ -81,8 +81,11 @@ describe("auth.superAdminLogin", () => {
     const result = await caller.auth.superAdminLogin({ email: process.env.SUPER_ADMIN_EMAIL ?? "", password: process.env.SUPER_ADMIN_PASSWORD ?? "" });
 
     expect(result).toMatchObject({ success: true, role: "admin" });
+    expect(result.sessionToken).toBeTypeOf("string");
+    expect(result.sessionToken.length).toBeGreaterThan(20);
     expect(cookies).toHaveLength(1);
     expect(cookies[0]?.name).toBe(COOKIE_NAME);
+    expect(cookies[0]?.value).toBe(result.sessionToken);
     expect(cookies[0]?.value).not.toContain(process.env.SUPER_ADMIN_PASSWORD ?? "");
     expect(cookies[0]?.options).toMatchObject({ httpOnly: true, secure: true, sameSite: "none", path: "/" });
   });

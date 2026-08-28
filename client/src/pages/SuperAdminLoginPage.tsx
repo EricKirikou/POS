@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { COOKIE_NAME } from "@shared/const";
 import { trpc } from "@/lib/trpc";
 import { AlertCircle, Eye, EyeOff, Loader2, LockKeyhole, ShieldCheck } from "lucide-react";
 import { FormEvent, useState } from "react";
@@ -14,7 +15,16 @@ export default function SuperAdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const login = trpc.auth.superAdminLogin.useMutation({
-    onSuccess: () => navigate("/"),
+    onSuccess: (result) => {
+      if (result.sessionToken) {
+        try {
+          sessionStorage.setItem("manus-cookie", `${COOKIE_NAME}=${result.sessionToken}`);
+        } catch {
+          // sessionStorage may be unavailable in restricted browser contexts.
+        }
+      }
+      navigate("/dashboard", { replace: true });
+    },
     onError: (cause) => setError(cause.message === "Invalid email or password." ? "The email or password is incorrect." : cause.message),
   });
 

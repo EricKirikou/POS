@@ -1,5 +1,6 @@
 import { and, desc, eq, gte, inArray, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
+import mysql from "mysql2/promise";
 import {
   customers,
   expenses,
@@ -104,15 +105,30 @@ function dayLabel(key: string) {
 }
 
 export async function getDb() {
-  if (!_db && process.env.DATABASE_URL) {
-    try {
-      _db = drizzle(process.env.DATABASE_URL);
-    } catch (error) {
-      console.warn("[Database] Failed to connect:", error);
-      _db = null;
-    }
+  if (_db) return _db;
+
+  const connectionString = process.env.DATABASE_URL?.trim();
+  if (!connectionString) {
+    console.warn("[Database] DATABASE_URL is not configured. Protected routes will fail until the database is available.");
+    return null;
   }
-  return _db;
+
+  try {
+    const pool = mysql.createPool({
+      uri: connectionString,
+      waitForConnections: true,
+      connectionLimit: 10,
+      maxIdle: 5,
+      idleTimeout: 60000,
+      queueLimit: 0,
+    });
+    _db = drizzle(pool);
+    return _db;
+  } catch (error) {
+    console.warn("[Database] Failed to initialize the MySQL pool:", error);
+    _db = null;
+    return null;
+  }
 }
 
 export async function requireDb() {
