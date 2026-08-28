@@ -8,14 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const DEFAULT_ADMIN_EMAIL = "superadmin@knust.edu.gh";
-const DEFAULT_ADMIN_PASSWORD = "Admin@123";
-
 export default function LoginPage() {
   const [, navigate] = useLocation();
   const { isAuthenticated, loading, user } = useAuth();
-  const [email, setEmail] = useState(DEFAULT_ADMIN_EMAIL);
-  const [password, setPassword] = useState(DEFAULT_ADMIN_PASSWORD);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
@@ -61,6 +58,7 @@ export default function LoginPage() {
               <div className="space-y-2"><Label htmlFor="login-password">Password</Label><div className="relative"><Input id="login-password" type={showPassword ? "text" : "password"} autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} className="pr-12" required disabled={login.isPending} /><button type="button" className="absolute inset-y-0 right-0 grid w-12 place-items-center text-muted-foreground transition-colors hover:text-foreground" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button></div></div>
               {error ? <div role="alert" className="flex items-start gap-2 rounded-xl bg-red-50 p-3 text-sm leading-5 text-red-700"><AlertCircle className="mt-0.5 shrink-0" size={17} /><span>{error}</span></div> : null}
               <Button className="h-11 w-full bg-[#174d36] text-white hover:bg-[#123d2b]" type="submit" disabled={login.isPending || !email || !password}>{login.isPending ? <><Loader2 className="animate-spin" /> Signing in</> : <><ArrowRight size={16} /> Sign in</>}</Button>
+              <Button type="button" variant="outline" className="h-11 w-full border-[#dfe7e1] bg-white text-[#173629] hover:bg-[#f5f7f5]" onClick={() => navigate("/", { replace: true })}>Back to landing page</Button>
             </form>
           </CardContent>
         </Card>}

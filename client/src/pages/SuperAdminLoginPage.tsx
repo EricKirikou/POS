@@ -7,13 +7,10 @@ import { AlertCircle, Eye, EyeOff, Loader2, LockKeyhole, ShieldCheck } from "luc
 import { FormEvent, useState } from "react";
 import { useLocation } from "wouter";
 
-const DEFAULT_ADMIN_EMAIL = "superadmin@knust.edu.gh";
-const DEFAULT_ADMIN_PASSWORD = "Admin@123";
-
 export default function SuperAdminLoginPage() {
   const [, navigate] = useLocation();
-  const [email, setEmail] = useState(DEFAULT_ADMIN_EMAIL);
-  const [password, setPassword] = useState(DEFAULT_ADMIN_PASSWORD);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const login = trpc.auth.superAdminLogin.useMutation({
