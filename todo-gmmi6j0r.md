@@ -1,0 +1,27 @@
+# Project TODO
+
+- [x] Inspect the existing TradeCore POS dashboard UI, navigation, and static data to map every required backend contract.
+- [x] Review the existing full-stack scaffold, shared types, and dashboard components before modifying application code.
+- [x] Add multi-location POS database entities for stores, product categories, products, inventory, customers, sales, sale line items, payments, expenses, and stock movements.
+- [x] Generate and apply a database migration that matches the POS schema.
+- [x] Implement protected typed procedures for dashboard reporting, catalog management, customers, inventory, sales checkout, payments, expenses, and stock adjustments.
+- [x] Enforce authorization boundaries and validate all mutation inputs at the API boundary.
+- [x] Connect the existing dashboard’s KPI cards, charts, low-stock alerts, and customer table to live backend queries with loading, error, and empty states.
+- [x] Add operational backend tests for dashboard aggregation, stock adjustment, and completed-sale workflows.
+- [x] Run type checking, unit tests, and interactive browser verification of successful and failing backend-backed flows; correct any discovered defects.
+- [x] Save a project checkpoint and deliver the backend implementation notes.
+- [x] Normalize product categories and per-location stock balances without using seeded production data.
+- [x] Add owner-scoped payments APIs and link completed POS checkout records to payment ledger entries.
+- [x] Exercise the real data helpers with non-mocked tests for aggregation, stock movements, and atomic checkout side effects.
+- [x] Add data-layer checkout tests covering sale, line item, payment, inventory balance, product stock, and stock movement persistence in one transaction.
+- [x] Add data-layer inventory-adjustment tests covering balance and movement persistence.
+- [x] Record the authenticated-browser QA result or the access limitation before final delivery.
+- [x] Review the existing session and authorization components before adding a credential-based super-admin path.
+- [x] Store the supplied super-admin credentials through protected configuration rather than application source code.
+- [x] Add a rate-limited credential-login API that establishes a secure super-admin session.
+- [x] Add a responsive super-admin login page and route with validation, error feedback, and accessible form controls.
+- [x] Gate super-admin-only controls and verify the login success, failure, and logout paths with tests.
+- [ ] Save a checkpoint and deliver the super-admin login update.
+- [x] Preserve manual credential entry in the super-admin login form and do not prepopulate or display credential values.
+- [x] Add explicit admin-only authorization checks for shop and location management actions.
+- [x] Test credential-login logout cookie clearing and unauthorized non-admin admin-action requests.

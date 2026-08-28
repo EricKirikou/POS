@@ -1,0 +1,63 @@
+import { afterEach, describe, expect, it } from "vitest";
+import { appRouter } from "./routers";
+import { setDbForTesting } from "./db";
+import { resetAdminLoginRateLimitsForTesting } from "./superAdminAuth";
+import { COOKIE_NAME } from "../shared/const";
+import type { TrpcContext } from "./_core/context";
+
+function createTestDb() {
+  return {
+    insert: () => ({ values: () => ({ onDuplicateKeyUpdate: async () => [{ affectedRows: 1 }] }) }),
+  };
+}
+
+function createContext() {
+  const cookies: Array<{ name: string; value: string; options: Record<string, unknown> }> = [];
+  const clearedCookies: Array<{ name: string; options: Record<string, unknown> }> = [];
+  const ctx: TrpcContext = {
+    user: null,
+    req: { protocol: "https", ip: "127.0.0.1", socket: { remoteAddress: "127.0.0.1" }, headers: {} } as TrpcContext["req"],
+    res: { cookie: (name: string, value: string, options: Record<string, unknown>) => cookies.push({ name, value, options }), clearCookie: (name: string, options: Record<string, unknown>) => clearedCookies.push({ name, options }) } as TrpcContext["res"],
+  };
+  return { ctx, cookies, clearedCookies };
+}
+
+afterEach(() => { setDbForTesting(null); resetAdminLoginRateLimitsForTesting(); });
+
+describe("auth.superAdminLogin", () => {
+  it("accepts the configured credential through the API and sets a protected admin session cookie", async () => {
+    setDbForTesting(createTestDb() as never);
+    const { ctx, cookies } = createContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const result = await caller.auth.superAdminLogin({ email: process.env.SUPER_ADMIN_EMAIL ?? "", password: process.env.SUPER_ADMIN_PASSWORD ?? "" });
+
+    expect(result).toMatchObject({ success: true, role: "admin" });
+    expect(cookies).toHaveLength(1);
+    expect(cookies[0]?.name).toBe(COOKIE_NAME);
+    expect(cookies[0]?.value).not.toContain(process.env.SUPER_ADMIN_PASSWORD ?? "");
+    expect(cookies[0]?.options).toMatchObject({ httpOnly: true, secure: true, sameSite: "none", path: "/" });
+  });
+
+  it("rejects an invalid password without setting a session", async () => {
+    const { ctx, cookies } = createContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(caller.auth.superAdminLogin({ email: process.env.SUPER_ADMIN_EMAIL ?? "", password: "invalid-password" })).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+    expect(cookies).toHaveLength(0);
+  });
+
+  it("clears the super-admin session cookie during logout", async () => {
+    setDbForTesting(createTestDb() as never);
+    const { ctx, clearedCookies } = createContext();
+    const loginCaller = appRouter.createCaller(ctx);
+    await loginCaller.auth.superAdminLogin({ email: process.env.SUPER_ADMIN_EMAIL ?? "", password: process.env.SUPER_ADMIN_PASSWORD ?? "" });
+    ctx.user = { id: 1, openId: "tradecore_super_admin", name: "Super Admin", email: process.env.SUPER_ADMIN_EMAIL ?? null, loginMethod: "credential", role: "admin", createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date() };
+
+    const result = await appRouter.createCaller(ctx).auth.logout();
+
+    expect(result).toEqual({ success: true });
+    expect(clearedCookies).toHaveLength(1);
+    expect(clearedCookies[0]).toMatchObject({ name: COOKIE_NAME, options: { maxAge: -1, httpOnly: true } });
+  });
+});
