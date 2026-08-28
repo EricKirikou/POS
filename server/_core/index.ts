@@ -35,7 +35,13 @@ async function startServer() {
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   registerStorageProxy(app);
-  registerOAuthRoutes(app);
+
+  if (process.env.OAUTH_SERVER_URL?.trim()) {
+    registerOAuthRoutes(app);
+  } else {
+    console.log("[Auth] OAuth routes disabled: OAUTH_SERVER_URL is not configured. Using local access-token session auth.");
+  }
+
   // tRPC API
   app.use(
     "/api/trpc",
