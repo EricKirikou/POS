@@ -59,6 +59,20 @@ describe("auth.superAdminLogin", () => {
     vi.unstubAllEnvs();
   });
 
+  it("ignores an OAuth URL that points back to the current app", async () => {
+    vi.stubEnv("OAUTH_SERVER_URL", "https://pos-vz7p.onrender.com/");
+    vi.stubEnv("RENDER_EXTERNAL_URL", "https://pos-vz7p.onrender.com");
+    vi.stubEnv("JWT_SECRET", "test-secret-for-auth");
+
+    const { ENV } = await import("./_core/env");
+    const { sdk } = await import("./_core/sdk");
+
+    expect(ENV.oAuthServerUrl).toBe("");
+    await expect(sdk.getUserInfoWithJwt("sample-token")).rejects.toMatchObject({ message: "OAuth server is not configured" });
+
+    vi.unstubAllEnvs();
+  });
+
   it("accepts the configured credential through the API and sets a protected admin session cookie", async () => {
     setDbForTesting(createTestDb() as never);
     const { ctx, cookies } = createContext();

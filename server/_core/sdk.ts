@@ -94,6 +94,10 @@ class SDKServer {
     return typeof ENV.oAuthServerUrl === "string" && ENV.oAuthServerUrl.trim().length > 0;
   }
 
+  private isSelfHostedOAuthSessionError(error: unknown): boolean {
+    return typeof error === "object" && error !== null && "message" in error && typeof (error as { message?: unknown }).message === "string" && /OAuth server is not configured|User session is not linked to a local account/i.test((error as { message: string }).message);
+  }
+
   private deriveLoginMethod(
     platforms: unknown,
     fallback: string | null | undefined
@@ -307,6 +311,10 @@ class SDKServer {
 
       try {
         const userInfo = await this.getUserInfoWithJwt(sessionToken ?? "");
+        if (!userInfo.openId) {
+          throw ForbiddenError("OAuth user info is missing an openId");
+        }
+
         await db.upsertUser({
           openId: userInfo.openId,
           name: userInfo.name || null,
@@ -316,6 +324,10 @@ class SDKServer {
         });
         user = await db.getUserByOpenId(userInfo.openId);
       } catch (error) {
+        if (this.isSelfHostedOAuthSessionError(error)) {
+          throw ForbiddenError("User session is not linked to a local account");
+        }
+
         console.error("[Auth] Failed to sync user from OAuth:", error);
         throw ForbiddenError("Failed to sync user info");
       }

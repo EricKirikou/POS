@@ -7,6 +7,7 @@ import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
+import { ENV } from "./env";
 import { serveStatic, setupVite } from "./vite";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -36,10 +37,10 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   registerStorageProxy(app);
 
-  if (process.env.OAUTH_SERVER_URL?.trim()) {
+  if (ENV.oAuthServerUrl) {
     registerOAuthRoutes(app);
   } else {
-    console.log("[Auth] OAuth routes disabled: OAUTH_SERVER_URL is not configured. Using local access-token session auth.");
+    console.log("[Auth] OAuth routes disabled: no valid external OAuth server is configured. Using local access-token session auth.");
   }
 
   // tRPC API
