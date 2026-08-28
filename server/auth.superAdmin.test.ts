@@ -4,6 +4,7 @@ import { setDbForTesting } from "./db";
 import { resetAdminLoginRateLimitsForTesting } from "./superAdminAuth";
 import { COOKIE_NAME } from "../shared/const";
 import type { TrpcContext } from "./_core/context";
+import { getSessionCookieOptions } from "./_core/cookies";
 
 function createTestDb() {
   return {
@@ -34,6 +35,15 @@ describe("auth.superAdminLogin", () => {
 
     expect(ENV.cookieSecret.length).toBeGreaterThan(0);
     expect(ENV.appId.length).toBeGreaterThan(0);
+
+    vi.unstubAllEnvs();
+  });
+
+  it("uses a secure cross-site cookie in production even when proxy headers are missing", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const req = { protocol: "http", headers: {} } as never;
+
+    expect(getSessionCookieOptions(req)).toMatchObject({ httpOnly: true, sameSite: "none", secure: true, path: "/" });
 
     vi.unstubAllEnvs();
   });
