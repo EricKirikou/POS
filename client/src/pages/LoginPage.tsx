@@ -34,7 +34,7 @@ export default function LoginPage() {
   return <main className="login-page">
     <section className="login-brand-panel">
       <div className="login-brand-inner">
-        <div className="login-wordmark"><img src="/manus-storage/tradecore-logo-mark_69c7bf77.png" alt="" /><span><b>Trade</b><em>Core</em></span></div>
+        <div className="login-wordmark"><img src="/tradecore-logo.svg" alt="" /><span><b>Trade</b><em>Core</em></span></div>
         <div className="login-copy"><p className="eyebrow">RETAIL OPERATIONS, IN SYNC</p><h1>One clear view<br />of every trade day.</h1><p>Bring shops, inventory, payments, and team activity into one controlled retail workspace.</p></div>
         <div className="login-assurance"><div><CheckCircle2 /><span><b>Location-aware controls</b><small>Keep each shop’s activity in context.</small></span></div><div><ShieldCheck /><span><b>Secure workspace access</b><small>Protected authentication for every session.</small></span></div></div>
       </div>
@@ -43,7 +43,7 @@ export default function LoginPage() {
     </section>
     <section className="login-form-panel">
       <div className="login-form-card">
-        <div className="login-mobile-mark"><img src="/manus-storage/tradecore-logo-mark_69c7bf77.png" alt="TradeCore" /><span><b>Trade</b><em>Core</em></span></div>
+        <div className="login-mobile-mark"><img src="/tradecore-logo.svg" alt="TradeCore" /><span><b>Trade</b><em>Core</em></span></div>
         <div className="login-heading"><p className="eyebrow">WORKSPACE ACCESS</p><h2>Welcome to TradeCore</h2><p>Sign in to continue to your retail operations workspace.</p></div>
 
         {loading ? <div className="login-loading"><Loader2 className="animate-spin" /> Checking your session…</div> : isAuthenticated ? <div className="login-signed-in"><CheckCircle2 /><div><b>Welcome back{user?.name ? `, ${user.name}` : ""}.</b><span>Opening your workspace now.</span></div></div> : <Card className="border-0 bg-transparent shadow-none">

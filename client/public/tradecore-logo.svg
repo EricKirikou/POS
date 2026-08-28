@@ -1,0 +1,20 @@
+<svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="tradecore-bg" x1="18" y1="18" x2="142" y2="142" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1B4C39"/>
+      <stop offset="1" stop-color="#0E2F25"/>
+    </linearGradient>
+    <linearGradient id="tradecore-accent" x1="32" y1="36" x2="120" y2="122" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8D581"/>
+      <stop offset="1" stop-color="#E9A93D"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="12" y="12" width="136" height="136" rx="30" fill="url(#tradecore-bg)"/>
+  <path d="M42 48H118" stroke="#F4F7F3" stroke-width="10" stroke-linecap="round"/>
+  <path d="M72 48V106" stroke="#F4F7F3" stroke-width="10" stroke-linecap="round"/>
+  <path d="M46 118H110" stroke="#F4F7F3" stroke-width="10" stroke-linecap="round"/>
+  <path d="M102 38L118 52V80" stroke="url(#tradecore-accent)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M44 80L72 52H118" stroke="url(#tradecore-accent)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M72 52L44 80" stroke="#F4F7F3" stroke-width="6" stroke-linecap="round" opacity="0.85"/>
+</svg>

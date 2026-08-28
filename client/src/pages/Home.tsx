@@ -122,7 +122,7 @@ function NavContent({ activeNav, setActiveNav, onClose }: { activeNav: string; s
   return (
     <div className="sidebar-inner">
       <div className="brand-block">
-        <img src="/manus-storage/tradecore-logo-mark_69c7bf77.png" alt="TradeCore" className="brand-mark" />
+        <img src="/tradecore-logo.svg" alt="TradeCore" className="brand-mark" />
         <span className="brand-wordmark"><b>Trade</b><em>Core</em></span>
         {onClose ? (
           <button aria-label="Close navigation" className="mobile-close" onClick={onClose}><X /></button>
