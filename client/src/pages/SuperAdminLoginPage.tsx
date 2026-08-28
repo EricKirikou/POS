@@ -7,10 +7,13 @@ import { AlertCircle, Eye, EyeOff, Loader2, LockKeyhole, ShieldCheck } from "luc
 import { FormEvent, useState } from "react";
 import { useLocation } from "wouter";
 
+const DEFAULT_ADMIN_EMAIL = "superadmin@knust.edu.gh";
+const DEFAULT_ADMIN_PASSWORD = "Admin@123";
+
 export default function SuperAdminLoginPage() {
   const [, navigate] = useLocation();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState(DEFAULT_ADMIN_EMAIL);
+  const [password, setPassword] = useState(DEFAULT_ADMIN_PASSWORD);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const login = trpc.auth.superAdminLogin.useMutation({
@@ -35,7 +38,7 @@ export default function SuperAdminLoginPage() {
         <Card className="w-full max-w-md border-0 shadow-none">
           <CardHeader className="px-0 pt-0"><div className="mb-5 grid h-12 w-12 place-items-center rounded-2xl bg-[#e9f5ee] text-[#1a7151]"><LockKeyhole size={22} /></div><CardTitle className="text-3xl text-[#173629]">Super-admin sign in</CardTitle><CardDescription className="pt-2 text-base leading-6">Enter the credentials assigned to your TradeCore administrator account.</CardDescription></CardHeader>
           <CardContent className="px-0 pb-0"><form className="space-y-5" onSubmit={submit} noValidate>
-            <div className="space-y-2"><Label htmlFor="super-admin-email">Email address</Label><Input id="super-admin-email" type="email" autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="admin@example.com" required disabled={login.isPending} /></div>
+            <div className="space-y-2"><Label htmlFor="super-admin-email">Email address</Label><Input id="super-admin-email" type="email" autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="superadmin@knust.edu.gh" required disabled={login.isPending} /></div>
             <div className="space-y-2"><Label htmlFor="super-admin-password">Password</Label><div className="relative"><Input id="super-admin-password" type={showPassword ? "text" : "password"} autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} className="pr-12" required disabled={login.isPending} /><button type="button" className="absolute inset-y-0 right-0 grid w-12 place-items-center text-muted-foreground transition-colors hover:text-foreground" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button></div></div>
             {error ? <div role="alert" className="flex items-start gap-2 rounded-xl bg-red-50 p-3 text-sm leading-5 text-red-700"><AlertCircle className="mt-0.5 shrink-0" size={17} /><span>{error}</span></div> : null}
             <Button className="h-11 w-full bg-[#174d36] text-white hover:bg-[#123d2b]" type="submit" disabled={login.isPending || !email || !password}>{login.isPending ? <><Loader2 className="animate-spin" /> Verifying credentials</> : "Sign in securely"}</Button>
