@@ -4,6 +4,7 @@ import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
+import { auth } from "express-openid-connect";
 import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
@@ -37,7 +38,36 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   registerStorageProxy(app);
 
-  if (ENV.oAuthServerUrl) {
+  // Prefer express-openid-connect (Auth0) when client credentials are configured.
+  const hasAuth0Config = Boolean(ENV.oAuthServerUrl && ENV.oAuthClientId && ENV.oAuthClientSecret);
+
+  if (hasAuth0Config) {
+    const baseUrl =
+      process.env.BASE_URL || process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || "3000"}`;
+
+    const authConfig = {
+      authRequired: false,
+      auth0Logout: true,
+      secret: ENV.cookieSecret,
+      baseURL: baseUrl,
+      clientID: ENV.oAuthClientId,
+      issuerBaseURL: ENV.oAuthServerUrl,
+    } as const;
+
+    app.use(auth(authConfig));
+    console.log("[Auth] Auth0 middleware enabled (express-openid-connect)");
+
+    // Expose a simple endpoint the frontend can call to get auth status/profile
+    app.get("/api/auth/me", (req, res) => {
+      // `req.oidc` is injected by express-openid-connect when enabled
+      // use `any` to avoid strict typing here
+      const r: any = req as any;
+      if (r.oidc && r.oidc.isAuthenticated && r.oidc.isAuthenticated()) {
+        return res.json({ authenticated: true, user: r.oidc.user });
+      }
+      return res.json({ authenticated: false });
+    });
+  } else if (ENV.oAuthServerUrl) {
     registerOAuthRoutes(app);
   } else {
     console.log("[Auth] OAuth routes disabled: no valid external OAuth server is configured. Using local access-token session auth.");

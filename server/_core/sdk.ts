@@ -29,6 +29,9 @@ const GET_USER_INFO_PATH = `/webdev.v1.WebDevAuthPublicService/GetUserInfo`;
 const GET_USER_INFO_WITH_JWT_PATH = `/webdev.v1.WebDevAuthPublicService/GetUserInfoWithJwt`;
 
 class OAuthService {
+  private discovery?: { token_endpoint?: string; userinfo_endpoint?: string };
+  private discoveryFetched = false;
+
   constructor(private client: ReturnType<typeof axios.create>) {
     console.log("[OAuth] Initialized with baseURL:", ENV.oAuthServerUrl);
     if (!ENV.oAuthServerUrl) {
@@ -42,35 +45,79 @@ class OAuthService {
     return decodeOAuthState(state).redirectUri;
   }
 
-  async getTokenByCode(
-    code: string,
-    state: string
-  ): Promise<ExchangeTokenResponse> {
+  private async ensureDiscovery(): Promise<void> {
+    if (this.discoveryFetched) return;
+    this.discoveryFetched = true;
+    try {
+      const resp = await this.client.get("/.well-known/openid-configuration");
+      if (resp && resp.data) {
+        this.discovery = resp.data;
+        console.log("[OAuth] OIDC discovery loaded");
+      }
+    } catch (err) {
+      // Not all OAuth servers expose OIDC discovery; that's OK — fallback will be used.
+      this.discovery = undefined;
+    }
+  }
+
+  async getTokenByCode(code: string, state: string): Promise<ExchangeTokenResponse> {
+    await this.ensureDiscovery();
+
+    const redirectUri = this.decodeState(state);
+
+    // If discovery provides a token_endpoint, use standard OIDC exchange.
+    if (this.discovery?.token_endpoint) {
+      const tokenEndpoint = this.discovery.token_endpoint;
+      const params = new URLSearchParams();
+      params.set("grant_type", "authorization_code");
+      params.set("code", code);
+      params.set("redirect_uri", redirectUri);
+      params.set("client_id", ENV.oAuthClientId || "");
+      if (ENV.oAuthClientSecret) params.set("client_secret", ENV.oAuthClientSecret);
+
+      const { data } = await axios.post(tokenEndpoint, params.toString(), {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        timeout: AXIOS_TIMEOUT_MS,
+      });
+
+      // Normalize to ExchangeTokenResponse shape expected by the rest of the SDK
+      return { accessToken: (data as any).access_token } as ExchangeTokenResponse;
+    }
+
+    // Fallback to Manus-style exchange
     const payload: ExchangeTokenRequest = {
       clientId: ENV.appId,
       grantType: "authorization_code",
       code,
-      redirectUri: this.decodeState(state),
+      redirectUri,
     };
 
-    const { data } = await this.client.post<ExchangeTokenResponse>(
-      EXCHANGE_TOKEN_PATH,
-      payload
-    );
-
+    const { data } = await this.client.post<ExchangeTokenResponse>(EXCHANGE_TOKEN_PATH, payload);
     return data;
   }
 
-  async getUserInfoByToken(
-    token: ExchangeTokenResponse
-  ): Promise<GetUserInfoResponse> {
-    const { data } = await this.client.post<GetUserInfoResponse>(
-      GET_USER_INFO_PATH,
-      {
-        accessToken: token.accessToken,
-      }
-    );
+  async getUserInfoByToken(token: ExchangeTokenResponse): Promise<GetUserInfoResponse> {
+    await this.ensureDiscovery();
 
+    if (this.discovery?.userinfo_endpoint) {
+      const userinfoEndpoint = this.discovery.userinfo_endpoint;
+      const { data } = await axios.get(userinfoEndpoint, {
+        headers: { Authorization: `Bearer ${token.accessToken}` },
+        timeout: AXIOS_TIMEOUT_MS,
+      });
+
+      // Map standard OIDC claims to GetUserInfoResponse shape
+      const mapped: any = {
+        openId: data.sub || data.sub,
+        email: data.email ?? null,
+        name: data.name ?? data.nickname ?? null,
+        platform: "email",
+        loginMethod: "email",
+      };
+      return mapped as GetUserInfoResponse;
+    }
+
+    const { data } = await this.client.post<GetUserInfoResponse>(GET_USER_INFO_PATH, { accessToken: token.accessToken });
     return data;
   }
 }
