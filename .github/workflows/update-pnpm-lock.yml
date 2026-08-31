@@ -1,0 +1,39 @@
+name: Update pnpm lockfile
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  update-lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Prepare pnpm
+        run: corepack prepare pnpm@10.15.1 --activate
+
+      - name: Install dependencies (regenerate lockfile)
+        run: pnpm install
+
+      - name: Commit pnpm-lock.yaml
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: github-actions
+          author_email: actions@github.com
+          message: chore: update pnpm-lock.yaml
+          add: pnpm-lock.yaml
+          push: true
